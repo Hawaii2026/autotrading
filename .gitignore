@@ -14,6 +14,10 @@ env/
 research/data/*.csv
 research/data/*.parquet
 research/data/*.txt
+research/data/ticks/**
+!research/data/ticks/README.md
+dashboard/live.js
+journal/feed_gaps.log
 journal/trades/*.csv
 journal/trades/*.txt
 journal/trades/*.png

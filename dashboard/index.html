@@ -61,7 +61,7 @@
 </style>
 </head>
 <body>
-  <h1>Trading Cockpit</h1>
+  <h1>Trading Cockpit <span id="live" style="font-size:13px;font-weight:600"></span></h1>
   <div class="sub" id="sub">Am I on pace?</div>
 
   <div class="grid row3" id="targets"></div>
@@ -205,6 +205,30 @@ document.getElementById("dd").innerHTML =
   ).join("");
   document.getElementById("byinstrument").innerHTML =
     `<thead><tr><th>Instrument</th><th>Net P&L</th><th>Trades</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+
+/* ---- live quote strip (local only; written by research/lib/tick_recorder.py
+   into dashboard/live.js — display-grade KarenBridge feed, no P&L math) ---- */
+(function () {
+  const el = document.getElementById("live");
+  function render() {
+    const q = window.LIVE_QUOTE;
+    if (!q || !q.price) return;
+    const ageS = (Date.now() - Date.parse(q.writtenAt)) / 1000;
+    const stale = ageS > 15 || q.feedState !== "live";
+    el.innerHTML = ` <span class="chip" style="${stale ? "" : "color:var(--good);border-color:var(--good)"}">
+      ${q.instrument} ${q.price}${stale ? " · stale" : " · live"}</span>`;
+  }
+  function reload() {
+    const s = document.createElement("script");
+    s.src = "live.js?t=" + Date.now();
+    s.onload = render;
+    s.onerror = () => {};           // no recorder running — strip stays hidden
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1000);
+  }
+  reload();
+  setInterval(reload, 2000);
 })();
 </script>
 </body>

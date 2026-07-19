@@ -39,9 +39,12 @@ journal/             exported executions, screenshots, weekly review notes
 docs/                compliance, security, strategy-registry, decisions, acceptance,
                      one-command-build.md (paste-into-Claude-Code build runner)
 tools/               send_alert.py (phone push), compare_trades.py (Phase 3
-                     Python-vs-NT8 port fidelity check)
+                     Python-vs-NT8 port fidelity check), check_karen_fidelity.py
+                     (KarenBridge feed vs NT8 bars diagnostic)
 tests/               smoke_test.py (engine plumbing check, no market data)
 update_dashboard.bat post-session: rebuild dashboard data + redeploy (Windows)
+start_recorder.bat   record the KarenBridge live feed (read-only, display-grade;
+                     powers the dashboard live strip — never backtest data)
 ```
 
 Guardrail tooling: `python -m research.lib.loader --check research/data/`
