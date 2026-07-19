@@ -25,7 +25,14 @@ research/data/ES_1min.csv
 
 The loader (`research/lib/data_loader.py`) auto-detects the NT8 semicolon
 format and generic CSVs (a `datetime` column, or separate `date`/`time`), and
-also reads `.parquet`. Convert once for fast reloads:
+also reads `.parquet`. Validate everything you export:
+
+```bash
+python -m research.lib.loader --check research/data/
+```
+
+(prints bar counts, date ranges, and flags weekday gaps). Convert once for
+fast reloads:
 
 ```python
 from research.lib.data_loader import load_bars, save_parquet

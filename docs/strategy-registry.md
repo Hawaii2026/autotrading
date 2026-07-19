@@ -28,3 +28,27 @@ the same dead idea into the same data until it "works." A strategy is only a
 > its metrics with real numbers once you run it on exported NQ/ES data, and add a
 > new row per idea. Never leave an in-sample-only number in the PF/Win%/DD columns
 > without the `in-sample` status flag.
+
+## Out-of-sample window declaration
+
+> Fill this in the day real data lands in `research/data/` (Phase 1, gate 5),
+> then never touch it: **OOS window: `____-__-__` forward. One shot per strategy.**
+
+## Idea intake (fill this in BEFORE any code is written)
+
+Every new idea gets an entry below using this template — the backtest is built
+from the written spec, not from a vibe. Log the kills too.
+
+```markdown
+## Idea: <name>                      Status: UNTESTED
+Thesis (one sentence — the "why" someone is on the wrong side):
+Instrument(s): NQ / ES        Session: e.g. 9:30–11:00 ET only
+Entry trigger (mechanical, no judgment words):
+Stop (attached before entry):        Target / exit:
+Filters (trend, volatility, day-of-week, news):
+Expected frequency: ~N trades/week   Variants budget: max 20
+```
+
+Graduation bar (to NinjaScript port): **200+ trades, PF ≳ 1.3 after costs,
+tolerable drawdown, holds up on the one-shot OOS window.** In-sample first
+(2023–2024); expect most ideas to die — each honest kill is the system working.

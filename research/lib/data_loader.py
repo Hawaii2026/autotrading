@@ -104,3 +104,81 @@ def save_parquet(df: pd.DataFrame, path: str | Path) -> None:
     """Persist a cleaned frame for fast reloads (needs pyarrow)."""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path)
+
+
+# --------------------------------------------------------------------------
+# CLI: validate exported data files (Phase 1, Step 5 acceptance check)
+#
+#     python -m research.lib.data_loader --check research/data/
+#     python -m research.lib.loader --check research/data/        (alias)
+#
+# Prints, per file: bar count, date range, inferred timeframe, and flags
+# weekdays with no bars inside the covered range (data gaps — some are just
+# market holidays, so a handful is normal; big blocks are missing exports).
+# --------------------------------------------------------------------------
+
+_DATA_SUFFIXES = {".csv", ".txt", ".parquet"}
+
+
+def _check_file(path: Path) -> bool:
+    try:
+        df = load_bars(path)
+    except Exception as exc:  # report and keep checking the rest
+        print(f"  [FAIL] {path.name}: {exc}")
+        return False
+
+    if len(df) == 0:
+        print(f"  [FAIL] {path.name}: loaded but contains no valid bars")
+        return False
+
+    start, end = df.index[0], df.index[-1]
+    step = df.index.to_series().diff().median()
+    tf = f"{int(step.total_seconds() // 60)}-min" if pd.notna(step) else "?"
+
+    covered = pd.Index(df.index.normalize().unique())
+    expected = pd.bdate_range(start.normalize(), end.normalize())
+    missing = expected.difference(covered)
+    n_holidayish = len(missing)
+
+    print(f"  [ok  ] {path.name}: {len(df):,} bars  {start} .. {end}  (~{tf})")
+    if n_holidayish:
+        examples = ", ".join(d.strftime("%Y-%m-%d") for d in missing[:5])
+        more = f" (+{n_holidayish - 5} more)" if n_holidayish > 5 else ""
+        note = "likely holidays" if n_holidayish <= 15 else "CHECK EXPORT — that is a lot"
+        print(f"         {n_holidayish} weekday(s) with no bars [{note}]: {examples}{more}")
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        description="Validate exported bar files (counts, ranges, gap flags).")
+    ap.add_argument("paths", nargs="+", help="data files or directories to check")
+    ap.add_argument("--check", action="store_true",
+                    help="accepted for compatibility; checking is the only action")
+    args = ap.parse_args(argv)
+
+    files: list[Path] = []
+    for p in (Path(p) for p in args.paths):
+        if p.is_dir():
+            files += sorted(f for f in p.iterdir()
+                            if f.suffix.lower() in _DATA_SUFFIXES)
+        elif p.exists():
+            files.append(p)
+        else:
+            print(f"  [FAIL] {p}: not found")
+
+    if not files:
+        print("No data files found. Export bars from NT8 first "
+              "(see research/data/README.md).")
+        return 1
+
+    print(f"Checking {len(files)} file(s):")
+    ok = all([_check_file(f) for f in files])
+    print("\nAll files loaded cleanly." if ok else "\nSome files FAILED — see above.")
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
