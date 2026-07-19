@@ -16,6 +16,8 @@ research/data/*.parquet
 research/data/*.txt
 research/data/ticks/**
 !research/data/ticks/README.md
+research/data/ticks_nt8/
+research/data/ticks_nt8_raw/
 dashboard/live.js
 journal/feed_gaps.log
 journal/trades/*.csv

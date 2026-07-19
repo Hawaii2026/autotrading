@@ -1,0 +1,11 @@
+# TickRecorder config — copy to: Documents\NinjaTrader 8\tick_recorder.txt
+# (optional; without it the addon records the default instrument list below
+# into Documents\NinjaTrader 8\tickdata\)
+#
+# Update INSTRUMENTS on contract rollover (Sep -> Dec), then restart NT8.
+
+INSTRUMENTS=MNQ 09-26,NQ 09-26,ES 09-26,MES 09-26
+
+# Where daily tick CSVs are written. Pointing it at the repo means
+# research/lib/tick_import.py can read it directly (files are gitignored):
+# OUTPUT_DIR=C:\path\to\trading-system\research\data\ticks_nt8_raw

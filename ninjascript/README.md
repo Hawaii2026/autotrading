@@ -9,6 +9,7 @@ file from this repo into the folder NT8 expects:
 | `indicators/LineCrossAlert.cs` | `Indicators\` |
 | `addons/RiskGuard.cs` | `Strategies\` * |
 | `addons/AlertSender.cs` | `AddOns\` |
+| `addons/TickRecorder.cs` | `AddOns\` |
 
 \* `RiskGuard` derives from `Strategy` (so it can flatten the account), so NT8
 wants it under `Strategies\` even though it lives in `addons/` here — it will
@@ -39,6 +40,13 @@ into Claude Code and fix iteratively. Two rules while fixing:
 - **AlertSender** credentials: Windows env vars `TELEGRAM_BOT_TOKEN` /
   `TELEGRAM_CHAT_ID`, or `Documents\NinjaTrader 8\alert_config.txt` with
   `KEY=value` lines. Never hard-code the token in the .cs files.
+- **TickRecorder** → runs automatically once compiled (it's an AddOn — check
+  the NinjaScript Output window for "recording …"). Optional config:
+  copy `tick_recorder.example.txt` to `Documents\NinjaTrader 8\tick_recorder.txt`
+  and set your instruments (update on rollover). Records **every Last tick**
+  locally — research-grade, unlike the sampled KarenBridge cloud feed. Import
+  to the lab with `python -m research.lib.tick_import` and pass its
+  `--validate` gate before backtesting on tick-derived bars.
 
 ## Keeping repo and NT8 in sync
 

@@ -5,6 +5,23 @@ here (CLAUDE.md non-negotiable). Newest first.
 
 ---
 
+## 2026-07-19 — TickRecorder.cs: research-grade tick capture at the source
+
+KarenBridge's 2 Hz sampling made its feed display-only, so true tick capture
+moved to where the ticks are: a local NT8 AddOn (`ninjascript/addons/
+TickRecorder.cs`) that writes **every Last tick** to daily CSVs on the trading
+PC (`Documents\NinjaTrader 8\tickdata\`, configurable via
+`tick_recorder.txt`). Read-only, local-only, no orders, nothing leaves the PC.
+`research/lib/tick_import.py` converts the CSVs to parquet
+(`research/data/ticks_nt8/`, gitignored) and can build loader-compatible
+1-min/5-min bars (`*_fromticks.csv`) — but those bars are only backtest-legal
+after passing the import's `--validate` gate: ≥99% of overlapping bars within
+1 tick of an NT8 chart export on every OHLC field. Tick timestamps use NT8's
+clock, so no timezone shifting is needed against chart exports. The KarenBridge
+poller stays for the dashboard live strip; this path is for research.
+
+---
+
 ## 2026-07-19 — KarenBridge integrated as a read-only, display-grade feed
 
 **What KarenBridge is** (from reading `Hawaii2026/karen-ambitious-ai-system`):
