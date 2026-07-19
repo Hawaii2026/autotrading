@@ -1,0 +1,43 @@
+{
+  "_comment": "Your profit targets and account stack. Edit these. Use the daily target as a TRACKING number, not a forcing number (see §7 of the build plan). Dollar amounts are per the whole stack unless you read the per-account view.",
+  "targets": {
+    "daily": 500,
+    "weekly": 2000,
+    "monthly": 8000
+  },
+  "trading_days_per_month": 21,
+  "accounts": [
+    {
+      "name": "LEAD-Personal",
+      "role": "lead",
+      "kind": "personal",
+      "size": 100000,
+      "trailing_drawdown": 0,
+      "max_contracts": 4
+    },
+    {
+      "name": "APEX-50K-1",
+      "role": "follower",
+      "kind": "funded",
+      "size": 50000,
+      "trailing_drawdown": 2500,
+      "max_contracts": 2
+    },
+    {
+      "name": "APEX-50K-2",
+      "role": "follower",
+      "kind": "funded",
+      "size": 50000,
+      "trailing_drawdown": 2500,
+      "max_contracts": 2
+    },
+    {
+      "name": "SIM101",
+      "role": "follower",
+      "kind": "sim",
+      "size": 50000,
+      "trailing_drawdown": 2500,
+      "max_contracts": 3
+    }
+  ]
+}

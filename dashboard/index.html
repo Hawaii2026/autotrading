@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trading Cockpit — P&amp;L vs Targets</title>
+<style>
+  :root {
+    --bg: #0f1216; --panel: #171b21; --panel2: #1e242c; --line: #2a323c;
+    --ink: #e7ecf2; --muted: #8b97a6; --good: #35c66b;
+    --bad: #e5484d; --warn: #e2a53b; --accent: #4c8dff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f5f7fa; --panel: #ffffff; --panel2: #f0f3f7; --line: #dde3ea;
+      --ink: #1a2029; --muted: #5c6773; --good: #148f47; --bad: #c9333a;
+      --warn: #b9791a; --accent: #2f6fe0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 20px;
+  }
+  h1 { font-size: 18px; margin: 0 0 2px; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 18px; }
+  .grid { display: grid; gap: 14px; }
+  .row3 { grid-template-columns: repeat(3, 1fr); }
+  .row2 { grid-template-columns: 2fr 1fr; }
+  @media (max-width: 820px) { .row3, .row2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px;
+  }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  .big { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pos { color: var(--good); } .neg { color: var(--bad); }
+  .tile-target { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .bar { height: 8px; border-radius: 6px; background: var(--panel2);
+    overflow: hidden; margin-top: 12px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); }
+  .bar.done > span { background: var(--good); }
+  .pace { font-size: 12px; margin-top: 8px; }
+  .pace .ok { color: var(--good); } .pace .behind { color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  .chip { display: inline-block; padding: 1px 7px; border-radius: 999px;
+    font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 820px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  .metric .k { color: var(--muted); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .04em; }
+  .metric .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  svg { width: 100%; height: 220px; display: block; }
+  .empty { color: var(--muted); padding: 24px 0; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>Trading Cockpit</h1>
+  <div class="sub" id="sub">Am I on pace?</div>
+
+  <div class="grid row3" id="targets"></div>
+
+  <div class="grid row2" style="margin-top:14px">
+    <div class="card">
+      <h2>Equity curve (stack total, net P&amp;L)</h2>
+      <div id="equity"></div>
+      <div class="pace" id="dd"></div>
+    </div>
+    <div class="card">
+      <h2>Accounts — distance to trailing threshold</h2>
+      <div id="accounts"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Performance</h2>
+    <div class="metrics" id="metrics"></div>
+    <div style="margin-top:16px"><table id="byinstrument"></table></div>
+  </div>
+
+<!-- build_data.py writes data.js; if absent we fall back to a tiny sample -->
+<script src="data.js" onerror="window.__noData=true"></script>
+<script>
+const SAMPLE_DATA = {
+  generated: "sample",
+  targets: { daily: 500, weekly: 2000, monthly: 8000 },
+  pace: {
+    day:   { pnl: 320, target: 500 },
+    week:  { pnl: 1450, target: 2000, days_elapsed: 3, days_total: 5 },
+    month: { pnl: 5200, target: 8000, days_elapsed: 12, days_total: 21 }
+  },
+  equity: [
+    {t:"2026-07-01 10:00", y:0},{t:"2026-07-03 11:00", y:640},
+    {t:"2026-07-08 10:30", y:420},{t:"2026-07-11 14:00", y:1180},
+    {t:"2026-07-15 10:15", y:980},{t:"2026-07-18 13:30", y:5200}
+  ],
+  max_drawdown: 760,
+  accounts: [
+    {name:"LEAD-Personal", kind:"personal", trailing_drawdown:0, all:5200, distance_to_threshold:null, trades:24},
+    {name:"APEX-50K-1", kind:"funded", trailing_drawdown:2500, all:5200, distance_to_threshold:7700, trades:24},
+    {name:"APEX-50K-2", kind:"funded", trailing_drawdown:2500, all:5200, distance_to_threshold:7700, trades:24}
+  ],
+  performance: {
+    trades: 24, win_rate: 0.5417, profit_factor: 1.68, avg_win: 410, avg_loss: -230,
+    by_instrument: { NQ:{pnl:3100,trades:10}, MNQ:{pnl:900,trades:8}, ES:{pnl:1200,trades:6} }
+  }
+};
+const D = (window.DASHBOARD_DATA) || SAMPLE_DATA;
+const usingSample = !window.DASHBOARD_DATA;
+
+const money = n => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString();
+const cls = n => n >= 0 ? "pos" : "neg";
+
+document.getElementById("sub").textContent =
+  (usingSample ? "SAMPLE DATA — run `python dashboard/build_data.py` to load your trades. "
+               : "Data generated " + D.generated + ". ") + "Am I on pace?";
+
+/* ---- targets row ---- */
+function tile(label, pnl, target, paceText, paceOk) {
+  const pct = target > 0 ? Math.max(0, Math.min(1, pnl / target)) : 0;
+  const done = target > 0 && pnl >= target;
+  return `<div class="card">
+    <h2>${label}</h2>
+    <div class="big ${cls(pnl)}">${money(pnl)}</div>
+    <div class="tile-target">of ${money(target)} target</div>
+    <div class="bar ${done ? "done" : ""}"><span style="width:${(pct*100).toFixed(0)}%"></span></div>
+    ${paceText ? `<div class="pace"><span class="${paceOk ? "ok":"behind"}">${paceText}</span></div>` : ""}
+  </div>`;
+}
+function paceFor(p) {
+  if (!p.days_total) return ["", true];
+  const expected = p.target * (p.days_elapsed / p.days_total);
+  const ok = p.pnl >= expected;
+  return [`day ${p.days_elapsed} of ${p.days_total} — ${ok ? "on pace" : "behind"} `
+          + `(pace target ${money(expected)})`, ok];
+}
+const [wkTxt, wkOk] = paceFor(D.pace.week);
+const [moTxt, moOk] = paceFor(D.pace.month);
+document.getElementById("targets").innerHTML =
+  tile("Today", D.pace.day.pnl, D.pace.day.target,
+       "tracking number — not a forcing number", true) +
+  tile("This week", D.pace.week.pnl, D.pace.week.target, wkTxt, wkOk) +
+  tile("This month", D.pace.month.pnl, D.pace.month.target, moTxt, moOk);
+
+/* ---- equity curve (inline SVG) ---- */
+function drawEquity(points) {
+  const el = document.getElementById("equity");
+  if (!points || points.length < 2) { el.innerHTML = '<div class="empty">No trades yet.</div>'; return; }
+  const W = 640, H = 220, pad = 28;
+  const ys = points.map(p => p.y);
+  const min = Math.min(0, ...ys), max = Math.max(0, ...ys);
+  const sx = i => pad + (i/(points.length-1))*(W-2*pad);
+  const sy = v => H-pad - ((v-min)/((max-min)||1))*(H-2*pad);
+  const line = points.map((p,i)=>`${i?"L":"M"}${sx(i).toFixed(1)},${sy(p.y).toFixed(1)}`).join(" ");
+  const area = `${line} L${sx(points.length-1).toFixed(1)},${sy(0).toFixed(1)} L${sx(0).toFixed(1)},${sy(0).toFixed(1)} Z`;
+  const last = points[points.length-1].y;
+  const stroke = last >= 0 ? "var(--good)" : "var(--bad)";
+  el.innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Equity curve">
+       <line x1="${pad}" x2="${W-pad}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--line)"/>
+       <path d="${area}" fill="${stroke}" opacity="0.12"/>
+       <path d="${line}" fill="none" stroke="${stroke}" stroke-width="2"/>
+     </svg>`;
+}
+drawEquity(D.equity);
+document.getElementById("dd").innerHTML =
+  `Max drawdown: <b class="neg">${money(D.max_drawdown)}</b>`;
+
+/* ---- accounts table ---- */
+(function () {
+  const rows = D.accounts.map(a => {
+    const dist = a.distance_to_threshold == null
+      ? '<span class="chip">n/a</span>'
+      : `<b class="${a.distance_to_threshold >= 0 ? "pos":"neg"}">${money(a.distance_to_threshold)}</b>`;
+    return `<tr><td>${a.name} <span class="chip">${a.kind||""}</span></td>
+      <td class="${cls(a.all)}">${money(a.all)}</td><td>${a.trades||0}</td><td>${dist}</td></tr>`;
+  }).join("");
+  document.getElementById("accounts").innerHTML =
+    `<table><thead><tr><th>Account</th><th>Net P&L</th><th>Trades</th><th>To threshold</th></tr></thead>
+     <tbody>${rows}</tbody></table>`;
+})();
+
+/* ---- performance ---- */
+(function () {
+  const p = D.performance;
+  const m = [
+    ["Trades", p.trades],
+    ["Win rate", (p.win_rate*100).toFixed(1) + "%"],
+    ["Profit factor", p.profit_factor == null ? "—" : p.profit_factor.toFixed(2)],
+    ["Avg win / loss", money(p.avg_win) + " / " + money(p.avg_loss)],
+  ];
+  document.getElementById("metrics").innerHTML = m.map(
+    ([k,v]) => `<div class="metric"><div class="k">${k}</div><div class="v">${v}</div></div>`
+  ).join("");
+
+  const gi = p.by_instrument || {};
+  const rows = Object.keys(gi).map(k =>
+    `<tr><td>${k}</td><td class="${cls(gi[k].pnl)}">${money(gi[k].pnl)}</td><td>${gi[k].trades}</td></tr>`
+  ).join("");
+  document.getElementById("byinstrument").innerHTML =
+    `<thead><tr><th>Instrument</th><th>Net P&L</th><th>Trades</th></tr></thead><tbody>${rows}</tbody>`;
+})();
+</script>
+</body>
+</html>

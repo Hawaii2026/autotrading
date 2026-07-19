@@ -1,0 +1,35 @@
+# Secrets — the only secret in the system (see docs/security.md)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Research data & exports (large / private — keep out of git)
+research/data/*.csv
+research/data/*.parquet
+research/data/*.txt
+journal/trades/*.csv
+journal/trades/*.txt
+journal/trades/*.png
+journal/trades/*.jpg
+dashboard/data.json
+dashboard/data.js
+
+# Keep the folder placeholders
+!**/.gitkeep
+
+# NinjaTrader build artifacts
+*.dll
+*.pdb
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
