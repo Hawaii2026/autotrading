@@ -22,6 +22,7 @@ import pandas as pd
 
 from research.backtests.orb.strategy import generate_signals
 from research.lib.backtester import backtest
+from research.lib.experiment_log import check_contamination, log_variants
 from research.lib.metrics import compute_metrics
 from research.lib.walk_forward import report, walk_forward
 
@@ -81,6 +82,12 @@ def main() -> None:
 
     is_bars = bars.loc[:args.is_end]
     oos_bars = bars.loc[args.is_end:].iloc[1:]
+
+    # record every variant this run evaluates; warn if the idea is contaminated
+    if not args.sample:   # synthetic runs don't count against the real ledger
+        n = log_variants("orb", grid, data_window=f"IS..{args.is_end}")
+        print(f"[ledger] 'orb' variants tested on this data so far: {n}")
+        check_contamination("orb")
 
     # 1) In-sample: pick params (this WILL look good — that's the point of IS).
     best = optimize(is_bars)

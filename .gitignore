@@ -20,6 +20,7 @@ journal/trades/*.png
 journal/trades/*.jpg
 dashboard/data.json
 dashboard/data.js
+dashboard/deploy_cmd.bat
 
 # Keep the folder placeholders
 !**/.gitkeep

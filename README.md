@@ -36,10 +36,18 @@ dashboard/           one-file local cockpit: P&L vs day/week/month targets
   targets.json       your targets + account stack
   build_data.py      NT8 execution exports -> dashboard/data.js
 journal/             exported executions, screenshots, weekly review notes
-docs/                compliance, security, strategy-registry, decisions, acceptance
-tools/               send_alert.py (Telegram/Discord push from Python)
+docs/                compliance, security, strategy-registry, decisions, acceptance,
+                     one-command-build.md (paste-into-Claude-Code build runner)
+tools/               send_alert.py (phone push), compare_trades.py (Phase 3
+                     Python-vs-NT8 port fidelity check)
 tests/               smoke_test.py (engine plumbing check, no market data)
+update_dashboard.bat post-session: rebuild dashboard data + redeploy (Windows)
 ```
+
+Guardrail tooling: `python -m research.lib.loader --check research/data/`
+validates exports; `python -m research.lib.experiment_log --status` shows how
+many variants each idea has burned against the 20-variant contamination line
+(real backtest runs log themselves automatically).
 
 ## Quick start
 

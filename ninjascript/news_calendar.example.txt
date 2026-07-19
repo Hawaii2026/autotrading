@@ -1,0 +1,16 @@
+# News blackout calendar for RiskGuard — copy this file to:
+#   Documents\NinjaTrader 8\news_calendar.txt
+# and maintain it WEEKLY (part of the weekly review ritual).
+#
+# Format: one event per line, TWO-OR-MORE spaces between fields:
+#   <start datetime>  <end datetime>  <label>
+# Times are in your CHART's local time zone. RiskGuard flattens + locks out
+# inside each window. Lines starting with # are ignored.
+#
+# Typical high-impact events for NQ/ES: FOMC statement + presser, CPI, NFP,
+# PPI, GDP advance, Powell testimony. Source them from any economic calendar.
+
+# --- examples (replace with the current week's real events) ---
+2026-07-30 13:55  2026-07-30 14:35  FOMC statement + presser start
+2026-08-01 08:25  2026-08-01 08:40  NFP
+2026-08-12 08:25  2026-08-12 08:40  CPI
