@@ -45,3 +45,12 @@ save_parquet(bars, "research/data/NQ_1min.parquet")
 - **In-sample**: 2023–2024 (tune here).
 - **Out-of-sample**: 2025–2026 — the window nothing is ever tuned on. One shot
   per strategy. See CLAUDE.md.
+
+## CQG depth note
+
+The data feed is **CQG**, whose intraday history is often shallower than other
+feeds. Export what it actually serves and record the real ranges — **never pad
+or synthesize missing bars**. If depth is short of the recommended coverage,
+note the actual split in `docs/strategy-registry.md` (the OOS boundary adjusts
+to real data, not the other way around) and source deeper history separately
+if needed.

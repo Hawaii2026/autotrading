@@ -22,7 +22,7 @@ import requests
 
 
 def send(message: str) -> bool:
-    channel = os.getenv("ALERT_CHANNEL", "telegram").lower()
+    channel = os.getenv("ALERT_CHANNEL", "discord").lower()
 
     if channel == "telegram":
         token = os.getenv("TELEGRAM_BOT_TOKEN")

@@ -13,13 +13,12 @@ using System.Threading.Tasks;
 // config in your NinjaTrader user folder. Nothing here ever blocks the UI thread.
 //
 // Config resolution order (first hit wins):
-//   1. Environment variables: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, DISCORD_WEBHOOK_URL
+//   1. Environment variables: DISCORD_WEBHOOK_URL (primary), TELEGRAM_* (fallback)
 //   2. File: <MyDocuments>\NinjaTrader 8\alert_config.txt   (key=value per line)
 //
-// alert_config.txt example (this file is your .env equivalent on Windows):
-//   TELEGRAM_BOT_TOKEN=123456:abcdef
-//   TELEGRAM_CHAT_ID=987654321
-//   DISCORD_WEBHOOK_URL=
+// alert_config.txt example (this file is your .env equivalent on Windows —
+// keep it out of git and never paste the webhook anywhere else):
+//   DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 namespace NinjaTrader.Custom.AlertUtils
 {
     public static class AlertSender
@@ -78,6 +77,17 @@ namespace NinjaTrader.Custom.AlertUtils
             var cfg = Config();
             try
             {
+                // Discord is the primary channel (Telegram kept as a fallback
+                // only if someone configures it explicitly).
+                if (cfg.TryGetValue("DISCORD_WEBHOOK_URL", out var hook)
+                    && !string.IsNullOrWhiteSpace(hook))
+                {
+                    var json = "{\"content\":" + JsonString(message) + "}";
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    _ = FireAndForget(hook, content);
+                    return;
+                }
+
                 if (cfg.TryGetValue("TELEGRAM_BOT_TOKEN", out var token)
                     && cfg.TryGetValue("TELEGRAM_CHAT_ID", out var chat)
                     && !string.IsNullOrWhiteSpace(token))
@@ -89,15 +99,6 @@ namespace NinjaTrader.Custom.AlertUtils
                         new KeyValuePair<string, string>("text", message),
                     });
                     _ = FireAndForget(url, content);
-                    return;
-                }
-
-                if (cfg.TryGetValue("DISCORD_WEBHOOK_URL", out var hook)
-                    && !string.IsNullOrWhiteSpace(hook))
-                {
-                    var json = "{\"content\":" + JsonString(message) + "}";
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    _ = FireAndForget(hook, content);
                 }
             }
             catch { /* never let alerting throw into strategy code */ }

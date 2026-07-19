@@ -10,7 +10,7 @@ using NinjaTrader.Custom.AlertUtils;
 // Phase 1 acceptance test: prove the whole alert path (chart -> sound -> phone)
 // with ZERO strategy risk. Set TriggerPrice to a level (it draws as a line you
 // can move), pick a Direction, and when price crosses it you get a chart marker,
-// a sound, and a Telegram/Discord push. See docs/phase1-acceptance.md.
+// a sound, and a Discord push. See docs/phase1-acceptance.md.
 namespace NinjaTrader.NinjaScript.Indicators
 {
     public class LineCrossAlert : Indicator

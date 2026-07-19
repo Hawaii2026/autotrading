@@ -11,13 +11,15 @@ Build the whole alert path **before any strategy exists**, then prove data loads
 - [ ] **3. C# compiles** — files copied into `Documents\NinjaTrader 8\bin\Custom\`
       (see `ninjascript/README.md` for the destination map); F5 in the NinjaScript
       Editor → "Compile successful"; strategy visible in the Strategies list.
-- [ ] **4. Phone buzz** — LineCrossAlert on a chart: marker + sound + Telegram
+- [ ] **4. Phone buzz** — LineCrossAlert on a chart: marker + sound + Discord
       push within ~2 s of the cross. *(The official Phase 1 gate.)*
-- [ ] **5. Real data loaded** — 2–3 yrs of NQ + ES 1-min/5-min exported to
-      `research/data/`; `python -m research.lib.loader --check research/data/`
+- [ ] **5. Real data loaded** — NQ + ES 1-min/5-min exported from the **CQG**
+      feed to `research/data/` (as far back as CQG actually serves — record the
+      real ranges, never pad);
+      `python -m research.lib.loader --check research/data/`
       reads every file, prints counts/ranges, no big gap blocks. **From this
-      moment, 2025-forward is the untouchable out-of-sample window — note it in
-      `docs/strategy-registry.md`.**
+      moment, the OOS window (default 2025-forward, adjusted to real CQG depth
+      if needed) is untouchable — note it in `docs/strategy-registry.md`.**
 - [ ] **6. Dashboard first light** — real accounts + targets in
       `dashboard/targets.json`; a sim execution export parsed by
       `python dashboard/build_data.py`; tiles + account table render in
@@ -25,16 +27,19 @@ Build the whole alert path **before any strategy exists**, then prove data loads
 
 Setup details for each gate follow.
 
-## a) Alert pipeline, end to end
+## a) Alert pipeline, end to end (Discord)
 
-1. Create a Telegram bot with **@BotFather**; copy the token. Message the bot once,
-   then read your `chat_id` from
-   `https://api.telegram.org/bot<TOKEN>/getUpdates`.
-2. Put the token + chat id where each side reads them:
-   - **Python** (dashboard/tools): copy `.env.example` → `.env`, fill it in.
-   - **NinjaScript** (NT8): set Windows env vars `TELEGRAM_BOT_TOKEN` /
-     `TELEGRAM_CHAT_ID`, **or** create
-     `…\Documents\NinjaTrader 8\alert_config.txt` with `KEY=value` lines.
+1. Create a Discord webhook: your server → the alerts channel → **Edit
+   Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL**. In the
+   Discord mobile app, enable push notifications for that channel so alerts
+   buzz your phone.
+2. Put the webhook URL where each side reads it — **and nowhere else** (it's a
+   secret: never in source, logs, dashboards, or commits):
+   - **Python** (dashboard/tools): copy `.env.example` → `.env`, fill in
+     `DISCORD_WEBHOOK_URL`.
+   - **NinjaScript** (NT8): create
+     `…\Documents\NinjaTrader 8\alert_config.txt` with one line:
+     `DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/…`
 3. Smoke-test the sender from a terminal:
    ```bash
    python tools/send_alert.py "Phase 1 test — hello from my trading PC"
@@ -48,10 +53,13 @@ Setup details for each gate follow.
 
 ✅ **Accept when:** phone buzzes within ~2 seconds of the chart condition.
 
-## b) Data export
+## b) Data export (CQG feed)
 
-1. Export 2–3 years of NQ and ES 1-min (and 5-min) bars from NT8 into
-   `research/data/` (see `research/data/README.md`).
+1. Export NQ and ES 1-min (and 5-min) bars from NT8 into `research/data/`
+   (see `research/data/README.md`). The feed is **CQG** — download and export
+   as far back as it actually serves (often shallower than other feeds).
+   Record the real ranges; if depth is short, say so and plan to source deeper
+   history separately — **never pad or synthesize bars**.
 2. Validate everything at once:
    ```bash
    python -m research.lib.loader --check research/data/

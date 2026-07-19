@@ -37,9 +37,10 @@ into Claude Code and fix iteratively. Two rules while fixing:
   `docs/compliance.md`.
 - **RiskGuard** → attach to a chart of the **lead** account before any AUTO
   trading (Phase 4 gate).
-- **AlertSender** credentials: Windows env vars `TELEGRAM_BOT_TOKEN` /
-  `TELEGRAM_CHAT_ID`, or `Documents\NinjaTrader 8\alert_config.txt` with
-  `KEY=value` lines. Never hard-code the token in the .cs files.
+- **AlertSender** credentials: create `Documents\NinjaTrader 8\alert_config.txt`
+  with one line — `DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/…`
+  (or set it as a Windows env var). The webhook is a secret: never hard-code it
+  in the .cs files, and never let it appear in logs, commits, or dashboards.
 - **TickRecorder** → runs automatically once compiled (it's an AddOn — check
   the NinjaScript Output window for "recording …"). Optional config:
   copy `tick_recorder.example.txt` to `Documents\NinjaTrader 8\tick_recorder.txt`

@@ -57,7 +57,7 @@ many variants each idea has burned against the 20-variant contamination line
 ```bash
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env                              # fill in your Telegram/Discord token
+cp .env.example .env                              # fill in your Discord webhook URL
 
 # Prove the engine works end-to-end on synthetic data (no data/NT8 needed):
 python tests/smoke_test.py
